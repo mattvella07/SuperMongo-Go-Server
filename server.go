@@ -1,9 +1,20 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"labix.org/v2/mgo"
+)
 
 func handler(c *gin.Context) {
-	content := gin.H{"Hello": "World"}
+	var content gin.H
+	session, err := mgo.Dial("mongodb://localhost:27017/")
+
+	if err != nil {
+		content = gin.H{"Error": err}
+	} else {
+		content = gin.H{"res": session}
+	}
+
 	c.JSON(200, content)
 }
 
