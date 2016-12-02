@@ -6,21 +6,26 @@ import (
 )
 
 func handler(c *gin.Context) {
-	var content gin.H
-	session, err := mgo.Dial("mongodb://localhost:27017/")
-
-	if err != nil {
-		content = gin.H{"Error": err}
-	} else {
-		content = gin.H{"res": session}
-	}
-
+	content := gin.H{"Test": "Hi"}
 	c.JSON(200, content)
 }
 
 func getAllDatabases(c *gin.Context) {
-	content := gin.H{"DB": "Mongo"}
-	c.JSON(200, content)
+	m := make(map[string]string)
+	session, err := mgo.Dial("mongodb://localhost:27017/")
+
+	if err != nil {
+		m["Error"] = "Can't connect to database"
+	} else {
+		dbs, dbErr := session.DatabaseNames()
+		if dbErr == nil {
+			for idx, item := range dbs {
+				m[string(idx)] = item
+			}
+		}
+	}
+
+	c.JSON(200, m)
 }
 
 func main() {
