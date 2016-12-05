@@ -49,10 +49,16 @@ func getCollectionsInDB(c *gin.Context) {
 	c.JSON(200, m)
 }
 
+func find(c *gin.Context) {
+	content := gin.H{"Find": "Query"}
+	c.JSON(200, content)
+}
+
 func main() {
 	app := gin.Default()
 	app.GET("/", handler)
 	app.GET("/api/databases", getAllDatabases)
 	app.GET("/api/collections/:db", getCollectionsInDB)
+	app.GET("/api/find/:db/:col/:query/:projection/:options", find)
 	app.Run(":3001")
 }
