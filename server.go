@@ -50,8 +50,21 @@ func getCollectionsInDB(c *gin.Context) {
 }
 
 func find(c *gin.Context) {
-	content := gin.H{"Find": "Query"}
-	c.JSON(200, content)
+	m := make(map[string]string)
+	session, err := mgo.Dial("mongodb://localhost:27017/")
+
+	if err != nil {
+		m["Error"] = "Can't complete find operation"
+	} else {
+		var result []struct{ Value int }
+		db := session.DB(c.Param("db")).C(c.Param("col"))
+		iter := db.Find(c.Param("query")).Iter()
+		findErr := iter.All(&result)
+
+		session.Close()
+	}
+
+	c.JSON(200, m)
 }
 
 func main() {
