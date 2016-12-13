@@ -2,17 +2,12 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
-
-type Message struct {
-	ID       bson.ObjectId `bson:"_id,omitempty"`
-	Body     string
-	Filename string
-}
 
 func handler(c *gin.Context) {
 	content := gin.H{"Test": "Hi"}
@@ -65,8 +60,19 @@ func find(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 	} else {
-		var query interface{}
-		//query = c.Param("query")
+		query := bson.M{}
+
+		queryParam := c.Param("query")
+		queryParam = strings.Trim(queryParam, "{ }")
+		queryStr := strings.Split(queryParam, ",")
+		for _, q := range queryStr {
+			items := strings.Split(q, ":")
+			if len(items) == 2 {
+				query = bson.M{strings.Trim(items[0], "\""): strings.Trim(items[1], "\"")}
+				//query = bson.M{"connectionType": "Cisco"}
+			}
+		}
+
 		db := session.DB(c.Param("db")).C(c.Param("col"))
 		//findErr := db.Find(bson.M{}).Limit(20).All(&result)
 		findErr := db.Find(query).Limit(20).All(&result)
