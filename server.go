@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -71,7 +72,11 @@ func find(c *gin.Context) {
 			items := strings.Split(q, ":")
 			if len(items) == 2 {
 				//query = bson.M{strings.Trim(items[0], "\""): strings.Trim(items[1], "\"")}
-				query[strings.Trim(items[0], "\"")] = strings.Trim(items[1], "\"")
+				if numVal, typeErr := strconv.Atoi(items[1]); typeErr == nil {
+					query[strings.Trim(items[0], "\"")] = numVal
+				} else {
+					query[strings.Trim(items[0], "\"")] = strings.Trim(items[1], "\"")
+				}
 			}
 		}
 
