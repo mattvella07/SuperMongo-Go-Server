@@ -60,16 +60,18 @@ func find(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 	} else {
-		query := bson.M{}
+		//uery := bson.M{}
+		query := make(map[string]interface{})
 
 		queryParam := c.Param("query")
 		queryParam = strings.Trim(queryParam, "{ }")
 		queryStr := strings.Split(queryParam, ",")
 		for _, q := range queryStr {
+			q = strings.Trim(q, " ")
 			items := strings.Split(q, ":")
 			if len(items) == 2 {
-				query = bson.M{strings.Trim(items[0], "\""): strings.Trim(items[1], "\"")}
-				//query = bson.M{"connectionType": "Cisco"}
+				//query = bson.M{strings.Trim(items[0], "\""): strings.Trim(items[1], "\"")}
+				query[strings.Trim(items[0], "\"")] = strings.Trim(items[1], "\"")
 			}
 		}
 
