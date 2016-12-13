@@ -1,9 +1,18 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
+
+type Message struct {
+	ID       bson.ObjectId `bson:"_id,omitempty"`
+	Body     string
+	Filename string
+}
 
 func handler(c *gin.Context) {
 	content := gin.H{"Test": "Hi"}
@@ -50,21 +59,25 @@ func getCollectionsInDB(c *gin.Context) {
 }
 
 func find(c *gin.Context) {
-	m := make(map[string]string)
+	var result []bson.M
 	session, err := mgo.Dial("mongodb://localhost:27017/")
 
 	if err != nil {
-		m["Error"] = "Can't complete find operation"
+		fmt.Println("Error: " + err.Error())
 	} else {
-		var result []struct{ Value int }
+		var query interface{}
+		//query = c.Param("query")
 		db := session.DB(c.Param("db")).C(c.Param("col"))
-		iter := db.Find(c.Param("query")).Iter()
-		findErr := iter.All(&result)
+		//findErr := db.Find(bson.M{}).Limit(20).All(&result)
+		findErr := db.Find(query).Limit(20).All(&result)
+		if findErr != nil {
+			fmt.Println("Error: " + findErr.Error())
+		}
 
 		session.Close()
 	}
 
-	c.JSON(200, m)
+	c.JSON(200, result)
 }
 
 func main() {
@@ -72,6 +85,6 @@ func main() {
 	app.GET("/", handler)
 	app.GET("/api/databases", getAllDatabases)
 	app.GET("/api/collections/:db", getCollectionsInDB)
-	app.GET("/api/find/:db/:col/:query/:projection/:options", find)
+	app.GET("/api/find/:db/:col/:query/:projection/:options", find) //Options contains Sort, Limit, and Skip
 	app.Run(":3001")
 }
