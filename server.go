@@ -73,13 +73,19 @@ func find(c *gin.Context) {
 			q = strings.Trim(q, " ")
 			items := strings.Split(q, ":")
 			if len(items) == 2 {
+				//Key and value to be added to the query
 				key := strings.Trim(items[0], "\"")
 				val := items[1]
 
-				if intVal, intErr := strconv.Atoi(val); intErr == nil {
+				//Determine data type of val and convert it
+				if key == "_id" {
+					query[key] = bson.ObjectIdHex(val)
+				} else if intVal, intErr := strconv.Atoi(val); intErr == nil {
 					query[key] = intVal
 				} else if floatVal, floatErr := strconv.ParseFloat(val, 64); floatErr == nil {
 					query[key] = floatVal
+				} else if boolVal, boolErr := strconv.ParseBool(val); boolErr == nil {
+					query[key] = boolVal
 				} else {
 					query[key] = strings.Trim(val, "\"")
 				}
