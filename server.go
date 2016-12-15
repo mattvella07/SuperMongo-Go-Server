@@ -10,6 +10,9 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+//PageLimit represents the max number of mongodb documents to return at one time
+const PageLimit = 20
+
 func handler(c *gin.Context) {
 	content := gin.H{"Test": "Hi"}
 	c.JSON(200, content)
@@ -61,7 +64,6 @@ func find(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 	} else {
-		//uery := bson.M{}
 		query := make(map[string]interface{})
 
 		queryParam := c.Param("query")
@@ -71,18 +73,21 @@ func find(c *gin.Context) {
 			q = strings.Trim(q, " ")
 			items := strings.Split(q, ":")
 			if len(items) == 2 {
-				//query = bson.M{strings.Trim(items[0], "\""): strings.Trim(items[1], "\"")}
-				if numVal, typeErr := strconv.Atoi(items[1]); typeErr == nil {
-					query[strings.Trim(items[0], "\"")] = numVal
+				key := strings.Trim(items[0], "\"")
+				val := items[1]
+
+				if intVal, intErr := strconv.Atoi(val); intErr == nil {
+					query[key] = intVal
+				} else if floatVal, floatErr := strconv.ParseFloat(val, 64); floatErr == nil {
+					query[key] = floatVal
 				} else {
-					query[strings.Trim(items[0], "\"")] = strings.Trim(items[1], "\"")
+					query[key] = strings.Trim(val, "\"")
 				}
 			}
 		}
 
 		db := session.DB(c.Param("db")).C(c.Param("col"))
-		//findErr := db.Find(bson.M{}).Limit(20).All(&result)
-		findErr := db.Find(query).Limit(20).All(&result)
+		findErr := db.Find(query).Limit(PageLimit).All(&result)
 		if findErr != nil {
 			fmt.Println("Error: " + findErr.Error())
 		}
