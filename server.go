@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"labix.org/v2/mgo"
@@ -86,6 +87,8 @@ func find(c *gin.Context) {
 					query[key] = floatVal
 				} else if boolVal, boolErr := strconv.ParseBool(val); boolErr == nil {
 					query[key] = boolVal
+				} else if dateVal, dateErr := time.Parse("2006-01-02", val); dateErr == nil {
+					query[key] = dateVal
 				} else {
 					query[key] = strings.Trim(val, "\"")
 				}
