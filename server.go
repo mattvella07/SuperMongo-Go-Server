@@ -8,11 +8,14 @@ import (
 	"strings"
 
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type listResponse struct {
 	Name string `json:"name"`
 }
+
+const pageLimit = 20
 
 func find(rw http.ResponseWriter, r *http.Request) {
 	// /api/find/:db/:col/:query/:projection/:options
@@ -27,7 +30,7 @@ func find(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	allParams := strings.Split(strings.Replace(r.URL.String(), "/api/find/", "", -1), "/")
-	var dbName, colName, query, projection, options string
+	var dbName, colName, queryStr, projectionStr, optionsStr string
 	if len(allParams) > 0 {
 		dbName = allParams[0]
 	}
@@ -35,23 +38,37 @@ func find(rw http.ResponseWriter, r *http.Request) {
 		colName = allParams[1]
 	}
 	if len(allParams) > 2 {
-		query = allParams[2]
+		queryStr = allParams[2]
 	}
 	if len(allParams) > 3 {
-		projection = allParams[3]
+		projectionStr = allParams[3]
 	}
 	if len(allParams) > 4 {
-		options = allParams[4]
+		optionsStr = allParams[4]
 	}
 
 	fmt.Println("db: ", dbName)
 	fmt.Println("col: ", colName)
-	fmt.Println("query: ", query)
-	fmt.Println("projection: ", projection)
-	fmt.Println("options: ", options)
+	fmt.Println("query: ", queryStr)
+	fmt.Println("projection: ", projectionStr)
+	fmt.Println("options: ", optionsStr)
 
+	query := make(map[string]interface{})
+
+	var res []bson.M
 	db := session.DB(dbName).C(colName)
-	db.Find(query).Limit(PageLimit).All()
+	err = db.Find(query).Limit(pageLimit).All(&res)
+	if err != nil {
+		log.Printf("ERROR: %s", err)
+		rw.WriteHeader(500)
+		rw.Write([]byte(fmt.Sprintf("ERROR: %s", err)))
+		return
+	}
+
+	fmt.Println(res)
+
+	session.Close()
+
 	// 		query := make(map[string]interface{})
 
 	// 		queryParam := c.Param("query")
